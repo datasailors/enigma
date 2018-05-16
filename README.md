@@ -7,13 +7,13 @@ You would need to install Docker for this project.
 # How to use
 Just run the following command for Encryption :
 
-docker container run -e http_proxy= -e https_proxy= -e no_proxy=localhost --name enigma -it -v ~/keys:/keys --rm iankoulski/enigma:latest node /enigma/index.js encrypt [Plain Text]
+docker container run --name enigma -it -v ~/keys:/keys --rm iankoulski/enigma:latest bash -c "./encrypt [Plain Text]"
 
 
 
 and for Decrypting :
 
-docker container run -e http_proxy= -e https_proxy= -e no_proxy=localhost --name enigma -it -v ~/keys:/keys --rm iankoulski/enigma:latest node /enigma/index.js decrypt [Encrypted Text]
+docker container run --name enigma -it -v ~/keys:/keys --rm iankoulski/enigma:latest bash -c "./decrypt [Encrypted Text]"
 
 
 

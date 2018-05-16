@@ -1,1 +1,1 @@
-node /enigma/index.js encrypt
+node /enigma/index.js encrypt $@
