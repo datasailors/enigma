@@ -6,6 +6,6 @@ if [ -d /etc/apt ]; then
         [ -f /etc/apt/apt.conf ] && cat /etc/apt/apt.conf
 fi
 
-mkdir ~/.ssh/
+mkdir /keys
 cd enigma
 npm install
