@@ -8,7 +8,7 @@
 const crypto2 = require('crypto2');
 const fs = require('fs');
 
-const path = process.env.HOME + '/.ssh/';//id_rsa';
+const path = '/keys/';//id_rsa';
 const publicFileName = path + "publicEnigma.pub";
 const privateFileName = path + "privateEnigma";
 let privateKey = ""
