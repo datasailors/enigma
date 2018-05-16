@@ -7,13 +7,13 @@ You would need to install Docker for this project.
 # How to use
 Just run the following command for Encryption :
 ```sh
-docker container run --name enigma -it -v ~/keys:/keys --rm iankoulski/enigma:latest bash -c "./encrypt [Plain Text]"
+docker run -it --rm -v ~/keys:/keys iankoulski/enigma encrypt [Plain Text]
 ```
 
 
 and for Decrypting :
 ```sh
-docker container run --name enigma -it -v ~/keys:/keys --rm iankoulski/enigma:latest bash -c "./decrypt [Encrypted Text]"
+docker run -it --rm -v ~/keys:/keys iankoulski/enigma decrypt [Encrypted Text]
 ```
 
 
