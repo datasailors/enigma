@@ -5,7 +5,11 @@ Enigma is an open source asymmetric encryption algorithm application which allow
 You would need to install Docker for this project.
 
 # How to use
-Just run the docker image by running the following command :
+Just run the following command for Encryption :
+docker container run -e http_proxy= -e https_proxy= -e no_proxy=localhost --name enigma -it -v /Users/yazdaniyekta/Documents/Projects/enigma/keys:/keys --rm iankoulski/enigma:latest node /enigma/index.js encrypt [Plain Text]
 
+and for Decrypting :
+docker container run -e http_proxy= -e https_proxy= -e no_proxy=localhost --name enigma -it -v /Users/yazdaniyekta/Documents/Projects/enigma/keys:/keys --rm iankoulski/enigma:latest node /enigma/index.js decrypt [Encrypted Text]
 
-# How does it work
+# Whats happening behind the scene . . .
+
