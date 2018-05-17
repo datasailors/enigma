@@ -91,7 +91,7 @@ let encrypt_decrypt = function(in_args){
         if(in_args[1]){
             crypto2.decrypt.rsa(in_args[1],privateKey).then(
                 result=>{
-                    console.log("result:",result)
+                    console.log(result)
                 },
                 error=>{console.log(error)}
             )
