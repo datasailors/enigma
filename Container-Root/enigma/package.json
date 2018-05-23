@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "debug":"node --inspect-brk index.js",
     "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "crypto2": "^2.0.0"
+    "crypto2": "^2.0.0",
+    "minimist": "^1.2.0"
   }
 }
