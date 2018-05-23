@@ -150,7 +150,7 @@ function CryptoStr(){
     }
 
     let createRandomEncrypterCipher = function(cipherFilePath){
-        debugger
+        
         return new Promise((p_resolve, p_reject)=>{
             isKeyPairGenerated().then(result => {
                 return loadKeys().then(result=>result, reject=>reject)
@@ -169,7 +169,7 @@ function CryptoStr(){
     }
     
     let getPlainText = function(filePath){
-        debugger
+        
         return new Promise((resolve, Mreject)=>{
             loadKeys()
             .then(result=>{return result}, reject=>{
@@ -180,16 +180,16 @@ function CryptoStr(){
                 return reject
             }).catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
             .then(function(keyresult) {
-                debugger
+                
                 return readFile(filePath).then(result => {
-                    debugger
+                    
                     let inputJson2Decrypt = {'enc':result}
                     decryptStringJson( keyresult.privatekey, inputJson2Decrypt)
                             .then(result => resolve(result), reject=> Mreject(reject))
                             .catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
                 }
                 ,reject=>{
-                    debugger
+                    
                     console.log('usr_error | cipher file not found at | getPlainText ' + reject);
                     Mreject('rejected since no cipher file exists');
                 }).catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
@@ -198,15 +198,15 @@ function CryptoStr(){
     } 
     
     let fetchKey = function(){
-        debugger
+        
         return new Promise((resolve, reject)=>{
-            debugger
+            
             getPlainText('CipherKey.enc').then(result=>{
                 result.forEach((item)=>{
                     resolve(item.enc);
                 }),
                 reject=>{
-                    debugger
+                    
                     console.log("usr_error | Cipher key read error inside reject| createCipherKey " + reject)
                     reject('')
                     createRandomEncrypterCipher('CipherKey.enc').then(result =>{
@@ -219,7 +219,7 @@ function CryptoStr(){
                     })
                 }
             }).catch((error)=>{
-                debugger
+                
                 console.log("usr_error|cipher key read error inside catch| createCipherKey");
                 createRandomEncrypterCipher('CipherKey.enc').then(result =>{
                     getPlainText('CipherKey.enc').then(result=>{
@@ -234,10 +234,10 @@ function CryptoStr(){
         })
     }
     let createCipherKey = function(){
-        debugger
+        
         return new Promise((resolve, reject)=>{
             fetchKey().then(key=>{
-                debugger
+                
                 let cipher = crypto.createCipher('aes192', key)
                 resolve(cipher);
             }, error=>{
@@ -250,7 +250,7 @@ function CryptoStr(){
     let createDecipherKey = function(){
         return new Promise((resolve, reject)=>{
             fetchKey().then(key=>{
-                debugger
+                
                 let decipher = crypto.createDecipher('aes192',key)
                 resolve(decipher);
             }, error=>{
@@ -266,7 +266,7 @@ function CryptoStr(){
                 input = (input === 'stream')?process.stdin:fs.createReadStream(input);
                 let output = in_json.output;
                 output = (output === 'stream')?process.stdout:fs.createWriteStream(output);
-                debugger
+                
                 input.pipe(cipher).pipe(output)
             })
     }
@@ -277,7 +277,7 @@ function CryptoStr(){
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
             let output = in_json.output;
             output = (output === 'stream')?process.stdout:fs.createWriteStream(output); 
-            debugger
+            
             input.pipe(decipher).pipe(output)          
         })
     }
