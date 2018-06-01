@@ -17,14 +17,6 @@ function CryptoStr(){
     let publicKey = '';
     const cipherFileLocation = path + 'Ciphered.PWD'
 
-    const tempPass = {
-        param1:'val1',
-        param2:'val2',
-        param3:'val3'
-    }
-
-    let encryptionResult = {
-    }
 
     let createFile = function(path, data){
         fs.writeFile(path, data, 'utf8', (err)=>{
@@ -119,7 +111,7 @@ function CryptoStr(){
         return Promise.all(promises)
     }
 
-    let decryptStringJson = function(pri, encObj){
+    let decrypt_RSA_StringJson = function(pri, encObj){
         let promises = [];
         for(let x in encObj){
             promises.push(
@@ -173,10 +165,7 @@ function CryptoStr(){
         return new Promise((resolve, Mreject)=>{
             loadKeys()
             .then(result=>{return result}, reject=>{
-                //reject will return a comment as keys not generated.
                 console.log("\n" + reject)
-                //console.log("\ngenerating a new set of keys ...")
-                //return createPublicPrivateKeyPair().then(result)
                 return reject
             }).catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
             .then(function(keyresult) {
@@ -184,7 +173,7 @@ function CryptoStr(){
                 return readFile(filePath).then(result => {
                     
                     let inputJson2Decrypt = {'enc':result}
-                    decryptStringJson( keyresult.privatekey, inputJson2Decrypt)
+                    decrypt_RSA_StringJson( keyresult.privatekey, inputJson2Decrypt)
                             .then(result => resolve(result), reject=> Mreject(reject))
                             .catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
                 }
@@ -201,16 +190,15 @@ function CryptoStr(){
         
         return new Promise((resolve, reject)=>{
             
-            getPlainText('CipherKey.enc').then(result=>{
+            getPlainText(cipherFileLocation).then(result=>{
                 result.forEach((item)=>{
                     resolve(item.enc);
                 }),
                 reject=>{
-                    
-                    console.log("usr_error | Cipher key read error inside reject| createCipherKey " + reject)
-                    reject('')
-                    createRandomEncrypterCipher('CipherKey.enc').then(result =>{
-                        getPlainText('CipherKey.enc').then(result=>{
+                    console.log("usr_error | Cipher key read error inside reject| createCipherKey " + reject);
+                    reject('');
+                    createRandomEncrypterCipher(cipherFileLocation).then(result =>{
+                        getPlainText(cipherFileLocation).then(result=>{
                             result.forEach((item)=>{
                                 resolve(item.enc);
                             }),
@@ -219,17 +207,15 @@ function CryptoStr(){
                     })
                 }
             }).catch((error)=>{
-                
-                console.log("usr_error|cipher key read error inside catch| createCipherKey");
-                createRandomEncrypterCipher('CipherKey.enc').then(result =>{
-                    getPlainText('CipherKey.enc').then(result=>{
+                console.log("usr_error | cipher key read error inside catch| createCipherKey");
+                createRandomEncrypterCipher(cipherFileLocation).then(result =>{
+                    getPlainText(cipherFileLocation).then(result=>{
                         result.forEach((item)=>{
                             resolve(item.enc);
                         }),
                         reject=>{ console.log("cipher key generation failed at | createCipherKey " + reject)}
                     })
                 })
-                //reject('error while loading the key (or passowrd) for creating cipher and decipher ' + error)
             }) 
         })
     }
@@ -266,47 +252,55 @@ function CryptoStr(){
                 input = (input === 'stream')?process.stdin:fs.createReadStream(input);
                 let output = in_json.output;
                 output = (output === 'stream')?process.stdout:fs.createWriteStream(output);
-                
                 input.pipe(cipher).pipe(output)
             })
     }
 
     let decryptStream = function(in_json){
+        debugger
         createDecipherKey().then(decipher => {
             let input = in_json.input;
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
             let output = in_json.output;
             output = (output === 'stream')?process.stdout:fs.createWriteStream(output); 
-            
             input.pipe(decipher).pipe(output)          
         })
     }
 
     this.processInputString = function(input){
-        let inputFileLocation = '';
-        let outputFileLocation = '';
-        let cryptingParam = {}
-        if(input.i && typeof(input.i)==='string'){
-            inputFileLocation = input.i
-        }
-        if(input.o && typeof(input.o)==='string'){
-            outputFileLocation = input.o
+        if(input._[0] == 'encrypt' || input._[0] == 'decrypt'){
+            let inputFileLocation = '';
+            let outputFileLocation = '';
+            let cryptingParam = {}
+            if(input.i && typeof(input.i)==='string'){
+                inputFileLocation = input.i
+            }
+            if(input.o && typeof(input.o)==='string'){
+                outputFileLocation = input.o
+    
+            }
+    
+            if(input._[0] == 'encrypt'){
+                cryptingParam.method = 'encrypt';
+                cryptingParam.input = inputFileLocation.length>0?inputFileLocation:'stream';
+                cryptingParam.output = outputFileLocation.length>0?outputFileLocation:'stream';
+                encryptStream(cryptingParam)
 
-        }
-
-        if(input._[0] == 'encrypt'){
-            cryptingParam.method = 'encrypt';
-            cryptingParam.input = inputFileLocation.length>0?inputFileLocation:'stream';
-            cryptingParam.output = outputFileLocation.length>0?outputFileLocation:'stream';
-            encryptStream(cryptingParam)
-        }else if(input._[0] == 'decrypt'){
-            cryptingParam.method = 'decrypt';
-            cryptingParam.input = inputFileLocation.length>0?inputFileLocation:'stream';
-            cryptingParam.output = outputFileLocation.length>0?outputFileLocation:'stream';
-            decryptStream(cryptingParam)
+            }else if(input._[0] == 'decrypt'){
+                cryptingParam.method = 'decrypt';
+                cryptingParam.input = inputFileLocation.length>0?inputFileLocation:'stream';
+                cryptingParam.output = outputFileLocation.length>0?outputFileLocation:'stream';
+                decryptStream(cryptingParam)
+            }
+            
+        }else{
+            console.log("\nusage: encrypt|decrypt [-i <path>] [-o <path>]");
+            console.log("\n-i   input, skip if its from command line");
+            console.log("\n-o   outpu, skip if its read from command line");
         }
     }
 }
 
 let cryp = new CryptoStr()
+
 cryp.processInputString(argv)
