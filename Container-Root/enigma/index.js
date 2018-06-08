@@ -15,7 +15,7 @@ function CryptoStr(){
     const privateFileName = path + 'privateEnigma';
     let privateKey = '';
     let publicKey = '';
-    const cipherFileLocation = path + 'Ciphered.PWD'
+    let cipherFileLocation = path + 'Ciphered.PWD'
 
 
     let createFile = function(path, data){
@@ -82,18 +82,20 @@ function CryptoStr(){
                                 }
                             })
                         }
-                        
                     }
                 )
         });
     }
 
-    let encrypt_RSA_StringJson = function(pub, encObj = passPhrase){
+    let encrypt_RSA_StringJson = function(pub, encObj){
+        debugger
         let promises = [];
         for(let x in encObj){
+            debugger
             promises.push(
                 new Promise((resolve,reject)=>{
                     if(encObj[x].length > 0){
+                        debugger
                         crypto2.encrypt.rsa(encObj[x], pub).then(
                             result=>{
                                 let rs = {[x] : result}
@@ -140,90 +142,109 @@ function CryptoStr(){
             reject('file not found')
         }) 
     }
-
+    //Creates a Random Password, Stores it in the PWD file (encrypted).
+    //This is called usually when application is called for the first time or cipher password is deleted.
+    //If RSA key pairs do not exist (called for the first time) they are generated as well.
     let createRandomEncrypterCipher = function(cipherFilePath){
-        
         return new Promise((p_resolve, p_reject)=>{
             isKeyPairGenerated().then(result => {
-                return loadKeys().then(result=>result, reject=>reject)
+                return loadKeys().then(result => result, reject => reject)
             }
                     , reject=>{
                     return createPublicPrivateKeyPair().then(result => result, reject => reject)
             })
             .then(function(result){
-                    let x = encrypt_RSA_StringJson(result.publickey)
-                        .then(result => result.forEach((item)=>{
+                getRandomPass().then(pass => {
+                    createFile(cipherFilePath, pass.RandomPass);
+                    encrypt_RSA_StringJson(result.publickey, pass)
+                    .then(result => result.forEach((item)=>{
                         createFile(cipherFilePath, item.RandomPass);
-            })
-                , reject => console.log('usr_error | while creating the random key | createRandomEncrypterCipher ' + reject))
+                        p_resolve(pass.RandomPass);
+                    })
+                    , reject => console.log('usr_error | while creating the random key | createRandomEncrypterCipher ' + reject))
+                });
             })
         })
     }
     
-    let getPlainText = function(filePath){
-        
+    let getRandomPass = function(){
+        return new Promise((resolve, reject) =>{
+            resolve(passPhrase), reject()
+        });
+    }
+
+    let decryptCipherPass = function(filePath){ // returns [ { enc: '69d8a11baf2e563d9e8d0E1437BF6D459EB1BD1C' } ]
+        debugger
         return new Promise((resolve, Mreject)=>{
             loadKeys()
-            .then(result=>{return result}, reject=>{
+            .then(result => result , reject=>{
                 console.log("\n" + reject)
                 return reject
-            }).catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
+                //This happens if the key pairs are deleted or failed to load. terminate the process. implement the key pair generation in the next release.
+            }).catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
             .then(function(keyresult) {
-                
+                debugger
                 return readFile(filePath).then(result => {
-                    
+                    debugger
                     let inputJson2Decrypt = {'enc':result}
                     decrypt_RSA_StringJson( keyresult.privatekey, inputJson2Decrypt)
                             .then(result => resolve(result), reject=> Mreject(reject))
-                            .catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
+                            //.catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
                 }
-                ,reject=>{
-                    
-                    console.log('usr_error | cipher file not found at | getPlainText ' + reject);
-                    Mreject('rejected since no cipher file exists');
-                }).catch((error)=> {console.log('usr_error | created at | getPlainText ' + error)})
-            }).catch((error)=>{console.log("usr_error | occured at | getPlainText " + error)})
-        })
-    } 
-    
-    let fetchKey = function(){
-        
-        return new Promise((resolve, reject)=>{
-            
-            getPlainText(cipherFileLocation).then(result=>{
-                result.forEach((item)=>{
-                    resolve(item.enc);
-                }),
-                reject=>{
-                    console.log("usr_error | Cipher key read error inside reject| createCipherKey " + reject);
-                    reject('');
-                    createRandomEncrypterCipher(cipherFileLocation).then(result =>{
-                        getPlainText(cipherFileLocation).then(result=>{
-                            result.forEach((item)=>{
-                                resolve(item.enc);
-                            }),
-                            reject=>{ console.log("cipher key generation failed at | createCipherKey " + reject)}
-                        })
-                    })
-                }
-            }).catch((error)=>{
-                console.log("usr_error | cipher key read error inside catch| createCipherKey");
-                createRandomEncrypterCipher(cipherFileLocation).then(result =>{
-                    getPlainText(cipherFileLocation).then(result=>{
-                        result.forEach((item)=>{
-                            resolve(item.enc);
-                        }),
-                        reject=>{ console.log("cipher key generation failed at | createCipherKey " + reject)}
-                    })
-                })
-            }) 
+                //The code should not reach here. This situation should be prevented prior to this method call.
+            //     ,reject=>{
+            //         debugger
+            //         console.log('usr_error | cipher file not found at | decryptCipherPass ' + reject);
+            //         Mreject('rejected since no cipher file exists');
+            //     }).catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
+            // }).catch((error)=>{console.log("usr_error | occured at | decryptCipherPass " + error)}
+            )
         })
     }
-    let createCipherKey = function(){
-        
+    )}
+    
+    let loadCipherPass = function(){
         return new Promise((resolve, reject)=>{
-            fetchKey().then(key=>{
-                
+            //check if the file exists first. else, create the file and return a new password.
+            if(fs.existsSync(cipherFileLocation)){
+                decryptCipherPass(cipherFileLocation).then(result=>{
+                    result.forEach((item)=>{
+                        resolve(item.enc);
+                    })
+                    //,
+                    // reject=>{
+                    //     console.log("usr_error | Cipher key read error inside reject| createCipherKey " + reject);
+                    //     reject('');
+                    //     createRandomEncrypterCipher(cipherFileLocation).then(result =>{
+                    //         decryptCipherPass(cipherFileLocation).then(result=>{
+                    //             result.forEach((item)=>{
+                    //                 resolve(item.enc);
+                    //             }),
+                    //             reject=>{ console.log("cipher key generation failed at | createCipherKey " + reject)}
+                    //         })
+                    //     })
+                    // }
+                })
+                // .catch((error)=>{
+                //     console.log("usr_error | cipher key read error inside catch| createCipherKey");
+                //     createRandomEncrypterCipher(cipherFileLocation).then(result =>{
+                //         decryptCipherPass(cipherFileLocation).then(result=>{
+                //             result.forEach((item)=>{
+                //                 resolve(item.enc);
+                //             }),
+                //             reject=>{ console.log("cipher key generation failed at | createCipherKey " + reject)}
+                //         })
+                //     })
+                // })
+            }else{
+                createRandomEncrypterCipher(cipherFileLocation).then(plainPass => {resolve(plainPass)})
+            }
+        })
+    }
+
+    let createCipherKey = function(){
+        return new Promise((resolve, reject)=>{
+            loadCipherPass().then(key=>{
                 let cipher = crypto.createCipher('aes192', key)
                 resolve(cipher);
             }, error=>{
@@ -235,8 +256,7 @@ function CryptoStr(){
 
     let createDecipherKey = function(){
         return new Promise((resolve, reject)=>{
-            fetchKey().then(key=>{
-                
+            loadCipherPass().then(key=>{
                 let decipher = crypto.createDecipher('aes192',key)
                 resolve(decipher);
             }, error=>{
@@ -256,8 +276,8 @@ function CryptoStr(){
             })
     }
 
+    
     let decryptStream = function(in_json){
-        debugger
         createDecipherKey().then(decipher => {
             let input = in_json.input;
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
@@ -302,5 +322,9 @@ function CryptoStr(){
 }
 
 let cryp = new CryptoStr()
-
+//cryp.getRandomPass().then(result => {console.log(result)});
+//cryp.createRandomEncrypterCipher('/keys/Ciphered.PWD').then(result => {console.log(result)}, reject => {console.log("reject" + reject)})
+//cryp.decryptCipherPass('/keys/Ciphered.PWD').then(result => {console.log(result)})
+//console.log(fs.existsSync('/keys/Ciphered.PWD2'));
+//cryp.loadCipherPass('/keys/Ciphered1.PWD').then(result => console.log(result))
 cryp.processInputString(argv)
