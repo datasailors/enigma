@@ -39,12 +39,12 @@ function CryptoStr(){
                     publicKey = result.publicKey;
                     createFile(publicFileName, publicKey);
                     createFile(privateFileName, privateKey);
+                    //privateKey = "";
                     if(privateKey.length > 5 && publicKey.length > 5){
                         resolve({'publickey':publicKey, 'privatekey':privateKey})
                     }
-                        
                     else{
-                        reject({'error':'unable to generate keys'})
+                        throw new Error("Failed at generating the public and private key\n");
                     }
                 }
             )
@@ -63,7 +63,7 @@ function CryptoStr(){
                         resolve({'publickey':publicKey, 'privatekey':privateKey})
                     else
                         reject({'error':'public key or private key not found'})
-                }).catch((error)=>{reject("usr_error | private key not found error at loadkeys")});;
+                }).catch((error) => {throw new Error("failed at loading keys")})
             }
         });
     }
@@ -88,14 +88,11 @@ function CryptoStr(){
     }
 
     let encrypt_RSA_StringJson = function(pub, encObj){
-        debugger
         let promises = [];
         for(let x in encObj){
-            debugger
             promises.push(
                 new Promise((resolve,reject)=>{
                     if(encObj[x].length > 0){
-                        debugger
                         crypto2.encrypt.rsa(encObj[x], pub).then(
                             result=>{
                                 let rs = {[x] : result}
@@ -147,12 +144,13 @@ function CryptoStr(){
     //If RSA key pairs do not exist (called for the first time) they are generated as well.
     let createRandomEncrypterCipher = function(cipherFilePath){
         return new Promise((p_resolve, p_reject)=>{
-            isKeyPairGenerated().then(result => {
+            isKeyPairGenerated()
+                .then(result => {
                 return loadKeys().then(result => result, reject => reject)
-            }
-                    , reject=>{
+                }
+                ,reject=>{
                     return createPublicPrivateKeyPair().then(result => result, reject => reject)
-            })
+                })
             .then(function(result){
                 getRandomPass().then(pass => {
                     createFile(cipherFilePath, pass.RandomPass);
@@ -163,7 +161,7 @@ function CryptoStr(){
                     })
                     , reject => console.log('usr_error | while creating the random key | createRandomEncrypterCipher ' + reject))
                 });
-            })
+            }).catch(err => p_reject(err));
         })
     }
     
@@ -174,7 +172,6 @@ function CryptoStr(){
     }
 
     let decryptCipherPass = function(filePath){ // returns [ { enc: '69d8a11baf2e563d9e8d0E1437BF6D459EB1BD1C' } ]
-        debugger
         return new Promise((resolve, Mreject)=>{
             loadKeys()
             .then(result => result , reject=>{
@@ -185,11 +182,10 @@ function CryptoStr(){
             .then(function(keyresult) {
                 debugger
                 return readFile(filePath).then(result => {
-                    debugger
                     let inputJson2Decrypt = {'enc':result}
                     decrypt_RSA_StringJson( keyresult.privatekey, inputJson2Decrypt)
                             .then(result => resolve(result), reject=> Mreject(reject))
-                            //.catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
+                            .catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
                 }
                 //The code should not reach here. This situation should be prevented prior to this method call.
             //     ,reject=>{
@@ -224,7 +220,9 @@ function CryptoStr(){
                     //         })
                     //     })
                     // }
-                })
+                }).catch((err) => {
+                    console.log(err);
+                    throw new Error("Error while calling the decryptCipherPass from loadCipherPass")})
                 // .catch((error)=>{
                 //     console.log("usr_error | cipher key read error inside catch| createCipherKey");
                 //     createRandomEncrypterCipher(cipherFileLocation).then(result =>{
@@ -237,7 +235,12 @@ function CryptoStr(){
                 //     })
                 // })
             }else{
-                createRandomEncrypterCipher(cipherFileLocation).then(plainPass => {resolve(plainPass)})
+                createRandomEncrypterCipher(cipherFileLocation)
+                .then(plainPass => {resolve(plainPass)})
+                .catch(err => {
+                    console.log(err)
+                    throw new Error("could not load the password as plain text inside loadCipherPass")
+                })
             }
         })
     }
@@ -249,7 +252,7 @@ function CryptoStr(){
                 resolve(cipher);
             }, error=>{
                 console.log("error creating cipher key");
-                reject('');
+                reject(error);
             })
         })
     }
@@ -261,7 +264,7 @@ function CryptoStr(){
                 resolve(decipher);
             }, error=>{
                 console.log("error creating decipher key");
-                reject('');
+                reject(error);
             })
         })
     }
@@ -284,11 +287,12 @@ function CryptoStr(){
             let output = in_json.output;
             output = (output === 'stream')?process.stdout:fs.createWriteStream(output); 
             input.pipe(decipher).pipe(output)          
-        })
+        }).catch((err) => {console.log("kir"); throw new Error("kir")})
     }
 
     this.processInputString = function(input){
-        if(input._[0] == 'encrypt' || input._[0] == 'decrypt'){
+        console.log(input)
+        if (input._[0] == 'encrypt' || input._[0] == 'decrypt'){
             let inputFileLocation = '';
             let outputFileLocation = '';
             let cryptingParam = {}
@@ -322,9 +326,4 @@ function CryptoStr(){
 }
 
 let cryp = new CryptoStr()
-//cryp.getRandomPass().then(result => {console.log(result)});
-//cryp.createRandomEncrypterCipher('/keys/Ciphered.PWD').then(result => {console.log(result)}, reject => {console.log("reject" + reject)})
-//cryp.decryptCipherPass('/keys/Ciphered.PWD').then(result => {console.log(result)})
-//console.log(fs.existsSync('/keys/Ciphered.PWD2'));
-//cryp.loadCipherPass('/keys/Ciphered1.PWD').then(result => console.log(result))
 cryp.processInputString(argv)
