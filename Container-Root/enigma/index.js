@@ -55,15 +55,19 @@ function CryptoStr(){
         return new Promise((resolve,reject)=>{
             if(publicKey.length < 1 || privateKey.length < 1){
                 crypto2.readPublicKey(publicFileName).then(
-                    result => {publicKey = result;
-                }).catch((error)=>{reject("usr_error | public key not found error at loadkeys")});
-                crypto2.readPrivateKey(privateFileName).then(
-                    result=>{privateKey = result;
-                    if(privateKey.length > 1 && publicKey.length > 1)
+                    result => {
+                        publicKey = result
+                        console.log("passed readiang public key")
+                    },
+                    reject => {throw new Error("failed loading public key")}
+                ).then(
+                    crypto2.readPrivateKey(privateFileName).then(
+                        result=>{privateKey = result;
                         resolve({'publickey':publicKey, 'privatekey':privateKey})
-                    else
-                        reject({'error':'public key or private key not found'})
-                }).catch((error) => {throw new Error("failed at loading keys")})
+                    },
+                    reject=>{throw new Error("private key not found")}
+                ).catch((err) => {throw new Error("failed at loading private key " + err)})
+                ).catch((err) => {throw new Error("failed loading public key " + err)})
             }
         });
     }
@@ -129,7 +133,7 @@ function CryptoStr(){
                                 reject(rs)
                             }
                         ).catch((err)=>{
-                            throw new Error("Filed while decrypting password")
+                            throw new Error("Failed while decrypting password")
                         })
                     }
                 })
@@ -180,27 +184,22 @@ function CryptoStr(){
         return new Promise((resolve, Mreject)=>{
             loadKeys()
             .then(result => result , reject=>{
-                console.log("\n" + reject)
-                return reject
+                console.log("" + reject)
+                throw new Error("Failed to load keys using function loadkeys")
                 //This happens if the key pairs are deleted or failed to load. terminate the process. implement the key pair generation in the next release.
-            }).catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
-            .then(function(keyresult) {
-                debugger
+            }).catch((error)=> {
+                console.log("Failed ... " + error);
+                throw new Error('usr_error | created at | decryptCipherPass ')
+            }).then(function(keyresult) {
                 readFile(filePath).then(result => {
                     let inputJson2Decrypt = {'enc':result}
                     decrypt_RSA_StringJson( keyresult.privatekey, inputJson2Decrypt)
                             .then(result => resolve(result), reject=> Mreject(reject))
-                            .catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
-                }
-                //The code should not reach here. This situation should be prevented prior to this method call.
-            //     ,reject=>{
-            //         debugger
-            //         console.log('usr_error | cipher file not found at | decryptCipherPass ' + reject);
-            //         Mreject('rejected since no cipher file exists');
-            //     }).catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
-            // }).catch((error)=>{console.log("usr_error | occured at | decryptCipherPass " + error)}
-            )
-        })
+                            .catch((error)=> {console.log('usr_error | created at | decryptCipherPass after decrypt_RSA_StringJson' + error)})
+                }).catch((err)=>{
+                    throw new Error("Failed decrypting the passowrd at decryptCipherPass fn")
+                })
+            }).catch((err)=>{throw new Error(err)});
     }
     )}
     
@@ -212,33 +211,10 @@ function CryptoStr(){
                     result.forEach((item)=>{
                         resolve(item.enc);
                     })
-                    //,
-                    // reject=>{
-                    //     console.log("usr_error | Cipher key read error inside reject| createCipherKey " + reject);
-                    //     reject('');
-                    //     createRandomEncrypterCipher(cipherFileLocation).then(result =>{
-                    //         decryptCipherPass(cipherFileLocation).then(result=>{
-                    //             result.forEach((item)=>{
-                    //                 resolve(item.enc);
-                    //             }),
-                    //             reject=>{ console.log("cipher key generation failed at | createCipherKey " + reject)}
-                    //         })
-                    //     })
-                    // }
+                    
                 }).catch((err) => {
                     console.log(err);
                     throw new Error("Error while calling the decryptCipherPass from loadCipherPass")})
-                // .catch((error)=>{
-                //     console.log("usr_error | cipher key read error inside catch| createCipherKey");
-                //     createRandomEncrypterCipher(cipherFileLocation).then(result =>{
-                //         decryptCipherPass(cipherFileLocation).then(result=>{
-                //             result.forEach((item)=>{
-                //                 resolve(item.enc);
-                //             }),
-                //             reject=>{ console.log("cipher key generation failed at | createCipherKey " + reject)}
-                //         })
-                //     })
-                // })
             }else{
                 createRandomEncrypterCipher(cipherFileLocation)
                 .then(plainPass => {resolve(plainPass)})
@@ -275,13 +251,15 @@ function CryptoStr(){
     }
 
     let encryptStream = function(in_json){
-            createCipherKey().then(cipher => {
-                let input = in_json.input;
-                input = (input === 'stream')?process.stdin:fs.createReadStream(input);
-                let output = in_json.output;
-                output = (output === 'stream')?process.stdout:fs.createWriteStream(output);
-                input.pipe(cipher).pipe(output)
-            })
+        console.log("input stream : ")
+        process.stdin.pipe(process.stdout);
+        createCipherKey().then(cipher => {
+            let input = in_json.input;
+            input = (input === 'stream')?process.stdin:fs.createReadStream(input);
+            let output = in_json.output;
+            output = (output === 'stream')?process.stdout:fs.createWriteStream(output);
+            input.pipe(cipher).pipe(output)
+        })
     }
 
     
@@ -291,8 +269,8 @@ function CryptoStr(){
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
             let output = in_json.output;
             output = (output === 'stream')?process.stdout:fs.createWriteStream(output); 
-            input.pipe(decipher).pipe(output)          
-        }).catch((err) => {console.log("kir"); throw new Error("kir")})
+            input.pipe(decipher).pipe(output)
+        }).catch((err) => {throw new Error("filed while creating the decipher key")})
     }
 
     this.processInputString = function(input){
