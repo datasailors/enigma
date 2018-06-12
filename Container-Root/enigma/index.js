@@ -102,7 +102,9 @@ function CryptoStr(){
                                 let rs = {[x] : 'usr_encryption_failed:' + reject}
                                 reject(rs)
                             }
-                        )
+                        ).catch((err)=>{
+                            throw new Error("Failed while encrypting password");
+                        })
                     }
                 })
             )
@@ -116,6 +118,7 @@ function CryptoStr(){
             promises.push(
                 new Promise((resolve,reject)=>{
                     if(encObj[x].length > 0){
+                        debugger
                         crypto2.decrypt.rsa(encObj[x], pri).then(
                             result=>{
                                 let rs = {[x] : result}
@@ -125,7 +128,9 @@ function CryptoStr(){
                                 let rs = {[x] : 'usr_decryption_failed:' + reject}
                                 reject(rs)
                             }
-                        )
+                        ).catch((err)=>{
+                            throw new Error("Filed while decrypting password")
+                        })
                     }
                 })
             )
@@ -181,7 +186,7 @@ function CryptoStr(){
             }).catch((error)=> {console.log('usr_error | created at | decryptCipherPass ' + error)})
             .then(function(keyresult) {
                 debugger
-                return readFile(filePath).then(result => {
+                readFile(filePath).then(result => {
                     let inputJson2Decrypt = {'enc':result}
                     decrypt_RSA_StringJson( keyresult.privatekey, inputJson2Decrypt)
                             .then(result => resolve(result), reject=> Mreject(reject))
