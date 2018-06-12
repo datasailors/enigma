@@ -1,19 +1,38 @@
 # Enigma
-Enigma is an open source asymmetric encryption algorithm application which allows us to encrypt and dycrypt any string using a public key and private key.
+Enigma is an open source asymmetric encryption application which allows us to encrypt and decrypt content using a public and private key.
 
 # Dependencies
 You would need to install Docker for this project.
 
 # How to use
 Just run the following command for Encryption :
+
+
 ```sh
-docker run -it --rm -v ~/keys:/keys iankoulski/enigma encrypt [Plain Text]
+version 1.0:
+docker run -it --rm -v ~/keys:/keys bhgedigital/enigma:1.0 encrypt [Plain Text]
+
+version 2.0:
+docker run -it --rm -v ~/keys:/keys -v $(pwd):/wd bhgedigital/enigma:2.0 encrypt -i <plain_file> -o <encrypted_file>
+
+or
+
+./encrypt.sh -i <plain_file> -o <encrypted_file>
 ```
 
 
 and for Decrypting :
+
 ```sh
-docker run -it --rm -v ~/keys:/keys iankoulski/enigma decrypt [Encrypted Text]
+version 1.0
+docker run -it --rm -v ~/keys:/keys bhgedigital/enigma:1.0 decrypt [Encrypted Text]
+
+version 2.0
+docker run -it --rm -v ~/keys:keys  -v $(pwd):/wd bhgedigital/enigma:2.0 decrypt -i <encrypted_file> -o <decrypted_file>
+
+or
+
+./decrypt.sh -i <encrypted_file> -o <dependent_file>
 ```
 
 
@@ -23,4 +42,5 @@ Application will create both encryption keys in the container and share it (with
 
 # References:
 The Docker image for this project is located here:
-https://hub.docker.com/r/iankoulski/enigma/
+https://github.com/bhgedigital/enigma.git
+
