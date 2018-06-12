@@ -57,7 +57,7 @@ function CryptoStr(){
                 crypto2.readPublicKey(publicFileName).then(
                     result => {
                         publicKey = result
-                        console.log("passed readiang public key")
+                        //console.log("passed readiang public key")
                     },
                     reject => {throw new Error("failed loading public key")}
                 ).then(
@@ -251,7 +251,7 @@ function CryptoStr(){
     }
 
     let encryptStream = function(in_json){
-        console.log("input stream : ")
+        //console.log("input stream : ")
         createCipherKey().then(cipher => {
             let input = in_json.input;
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
@@ -273,7 +273,7 @@ function CryptoStr(){
     }
 
     this.processInputString = function(input){
-        console.log(input)
+        //console.log(input)
         if (input._[0] == 'encrypt' || input._[0] == 'decrypt'){
             let inputFileLocation = '';
             let outputFileLocation = '';
