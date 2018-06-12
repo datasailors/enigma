@@ -1,7 +1,8 @@
 {
   "name": "enigma",
   "version": "1.0.0",
-  "description": "",
+  "description": "Encrypts and decrypts content",
+  "repository": "https://github.com/bhgedigital/enigma.git",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
