@@ -252,7 +252,6 @@ function CryptoStr(){
 
     let encryptStream = function(in_json){
         console.log("input stream : ")
-        process.stdin.pipe(process.stdout);
         createCipherKey().then(cipher => {
             let input = in_json.input;
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
