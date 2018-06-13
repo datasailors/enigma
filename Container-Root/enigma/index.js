@@ -257,7 +257,23 @@ function CryptoStr(){
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
             let output = in_json.output;
             output = (output === 'stream')?process.stdout:fs.createWriteStream(output);
-            input.pipe(cipher).pipe(output)
+            if(input === process.stdin && output === process.stdout){
+                let encrypted = '';
+                cipher.on('readable', () => {
+                const data = cipher.read();
+                if (data)
+                    encrypted += data.toString('hex');
+                });
+                cipher.on('end', () => {
+                console.log(encrypted);
+                });
+
+                cipher.write(in_json.inputText);
+                cipher.end();
+            }
+            else{
+                input.pipe(cipher).pipe(output)
+            }
         })
     }
 
@@ -267,13 +283,26 @@ function CryptoStr(){
             let input = in_json.input;
             input = (input === 'stream')?process.stdin:fs.createReadStream(input);
             let output = in_json.output;
-            output = (output === 'stream')?process.stdout:fs.createWriteStream(output); 
-            input.pipe(decipher).pipe(output)
-        }).catch((err) => {throw new Error("filed while creating the decipher key")})
+            output = (output === 'stream')?process.stdout:fs.createWriteStream(output);
+            if(input === process.stdin && output === process.stdout){
+                let decrypted = '';
+                decipher.on('readable', () => {
+                const data = decipher.read();
+                if (data)
+                    decrypted += data.toString('utf8');
+                });
+                decipher.on('end', () => {
+                console.log(decrypted);
+                });
+                decipher.write(in_json.inputText, 'hex');
+                decipher.end();
+            }else{
+                input.pipe(decipher).pipe(output)
+            }
+        }).catch((err) => {throw new Error("failed while creating the decipher key")})
     }
 
     this.processInputString = function(input){
-        //console.log(input)
         if (input._[0] == 'encrypt' || input._[0] == 'decrypt'){
             let inputFileLocation = '';
             let outputFileLocation = '';
@@ -290,12 +319,14 @@ function CryptoStr(){
                 cryptingParam.method = 'encrypt';
                 cryptingParam.input = inputFileLocation.length>0?inputFileLocation:'stream';
                 cryptingParam.output = outputFileLocation.length>0?outputFileLocation:'stream';
+                cryptingParam.inputText = input._[1] === undefined?undefined:input._[1];
                 encryptStream(cryptingParam)
 
             }else if(input._[0] == 'decrypt'){
                 cryptingParam.method = 'decrypt';
                 cryptingParam.input = inputFileLocation.length>0?inputFileLocation:'stream';
                 cryptingParam.output = outputFileLocation.length>0?outputFileLocation:'stream';
+                cryptingParam.inputText = input._[1] === undefined?undefined:input._[1];
                 decryptStream(cryptingParam)
             }
             
