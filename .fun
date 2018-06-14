@@ -30,7 +30,7 @@ function hostip
                 export HOST_IP=$(ifconfig | grep -v 127.0.0.1 | grep -v inet6 | grep inet | head -n 1 | awk '{print $2}') # Mac OS
                 ;;
         "Windows")
-                export HOST_IP=$( ((ipconfig | grep IPv4 | grep 10.187 | tail -1) && (ipconfig | grep IPv4 | grep 3. | head -1)) | tail -1 | awk '{print $14}' ) # Git bash
+                export HOST_IP=$( ((ipconfig | grep IPv4 | grep 10. | tail -1) | tail -1 | awk '{print $14}' ) # Git bash
                 ;;
         *)
                 export HOST_IP=$(hostname)
@@ -40,3 +40,32 @@ function hostip
 ## End hostip function 
 hostip
 
+## encryptUsage
+function encryptUsage
+{
+	echo ""
+	echo "Usage:"
+	echo "       ./encrypt.sh [Plain text]"
+	echo ""
+	echo "       or"
+	echo ""
+	echo "       ./encrypt.sh -i <unencrypted-filepath-within-container> -o <encrypted-filepath-within-container>"
+	echo ""
+	echo "       Note: For filepaths within container see volumen mapping in your .env file"
+	echo ""
+}
+
+## decryptUsage
+function decryptUsage
+{
+	echo ""
+	echo "Usage:"
+	echo "       ./decrypt.sh [Plain text]"
+	echo ""
+	echo "       or"
+	echo ""
+	echo "       ./dectypr.sh -i <encrypted-filepath-within-container> -o <decrypted-filepath-within-container>"
+	echo ""
+	echo "       Note: For filepaths within container see volumen mapping in your .env file"
+	echo ""
+}
