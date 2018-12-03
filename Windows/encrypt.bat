@@ -8,4 +8,4 @@ if "%1" == "" (
 	set MODE=-it
 )
 
-docker container run %RUN_OPTS% %CONTAINER_NAME% %MODE% %NETWORK% %PORT_MAP% %VOL_MAP% --rm %REGISTRY%%IMAGE%%TAG% powershell -Command "encrypt -args"
+docker container run %RUN_OPTS% %CONTAINER_NAME% %MODE% %NETWORK% %PORT_MAP% %VOL_MAP% --rm %REGISTRY%%IMAGE%%TAG% powershell -Command "encrypt %1"
