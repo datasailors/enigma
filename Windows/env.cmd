@@ -31,7 +31,7 @@ rem CONTAINER_NAME: [optional] - Name of the Docker container including the --na
 set CONTAINER=%IMAGE%
 set CONTAINER_NAME=--name %CONTAINER%
 rem Port map [optional] - Mapping of external to internal ports including the -p switch. Example -p 80:8080 
-set PORT_MAP=-p 80:8080
+set PORT_MAP=
 rem Volume map [optional] - Mapping of external to internal paths including the -v switch. Example %cd%:/wd
 set VOL_MAP=-v c:/keys:c:/keys -v %cd%:c:/wd
 rem Network [optional] - Network name including the --net switch. Example --net mynet

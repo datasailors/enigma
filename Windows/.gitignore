@@ -6,3 +6,5 @@ keys/publicEnigma.pub
 *.txt
 *.text
 *.png
+*.msi
+nodejs/
